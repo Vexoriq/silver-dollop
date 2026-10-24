@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeQuiz Arena - 1v1 Tech Battle & Coding Trivia</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#0a0f1d',
+                            card: '#111827',
+                            border: '#1f2937',
+                            accent: '#6366f1',
+                            neonBlue: '#38bdf8',
+                            neonPurple: '#a855f7',
+                            neonPink: '#ec4899',
+                            success: '#22c55e',
+                            danger: '#ef4444'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-blue': '0 0 15px rgba(56, 189, 248, 0.4)',
+                        'neon-purple': '0 0 15px rgba(168, 85, 247, 0.4)',
+                        'neon-pink': '0 0 15px rgba(236, 72, 153, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #060913;
+            color: #f3f4f6;
+        }
+
+        code, pre {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        .glow-text-blue {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+        }
+        .glow-text-purple {
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+        }
+        
+        /* Health Bar Shake Animation */
+        @keyframes damageShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: damageShake 0.4s ease-in-out;
+        }
+
+        /* Pulse glow */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.8); }
+        }
+        .pulse-border {
+            animation: pulseGlow 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- TOP NAVIGATION / HEADER -->
+    <header class="border-b border-gray-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('view-menu')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-500">
+                        CodeQuiz <span class="text-pink-500 font-black">ARENA</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 hidden sm:block" id="txt-subtitle">1v1 PvP Coding Battles & Tech Trivia</p>
+                </div>
+            </div>
+
+            <!-- Header Controls: Sound, Language, Player Level -->
+            <div class="flex items-center gap-3">
+                <!-- Player Stats Quick View -->
+                <div class="hidden md:flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5 text-xs">
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-amber-400"></i>
+                        <span id="header-rank" class="font-bold text-gray-200">Junior Debugger</span>
+                    </div>
+                    <span class="text-gray-600">|</span>
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-cyan-400"></i>
+                        <span id="header-xp" class="font-mono text-cyan-300">0 XP</span>
+                    </div>
+                </div>
+
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="p-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs font-semibold text-gray-300 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-globe text-indigo-400"></i>
+                    <span id="lang-btn-text">UZ</span>
+                </button>
+
+                <!-- Sound FX Toggle -->
+                <button id="sound-btn" onclick="toggleSound()" class="p-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 transition-colors">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-cyan-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+        <!-- ================= MAIN MENU VIEW ================= -->
+        <div id="view-menu" class="view-panel flex flex-col items-center justify-center py-6 gap-8">
+            <!-- Hero Banner -->
+            <div class="text-center max-w-2xl">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-950 border border-indigo-800 text-indigo-300 inline-block mb-3">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Season 1: Cyber Battleground
+                </span>
+                <h2 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
+                    <span id="menu-title-1">Test Your Code.</span> <br class="hidden sm:inline"/>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500" id="menu-title-2">Dominate The Arena.</span>
+                </h2>
+                <p class="text-gray-400 text-sm md:text-base mb-6" id="menu-desc">
+                    Battle against AI bots, challenge friends locally, or test your speed in Bug Spotting, JS, Python, HTML/CSS and Algorithms.
+                </p>
+            </div>
+
+            <!-- Game Mode Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+                <!-- Mode 1: PvP vs Bot -->
+                <div onclick="selectGameMode('pvp')" class="group relative bg-slate-900/90 border border-gray-800 hover:border-cyan-500 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-neon-blue flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2" id="mode-pvp-title">1v1 PvP Bot Battle</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4" id="mode-pvp-desc">
+                            Real-time fast-paced fight against smart AI. 15s timer per question with health bars & power-ups.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-semibold text-cyan-400">
+                        <span id="mode-pvp-cta">Start Battle</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Mode 2: Practice -->
+                <div onclick="selectGameMode('practice')" class="group relative bg-slate-900/90 border border-gray-800 hover:border-purple-500 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-neon-purple flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-950 border border-purple-800 text-purple-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2" id="mode-practice-title">Solo Practice</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4" id="mode-practice-desc">
+                            No timer pressure. Deep dive into topics with instant feedback and detailed explanations.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-semibold text-purple-400">
+                        <span id="mode-practice-cta">Train Now</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Mode 3: Pass & Play -->
+                <div onclick="selectGameMode('pass-play')" class="group relative bg-slate-900/90 border border-gray-800 hover:border-pink-500 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-neon-pink flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-pink-950 border border-pink-800 text-pink-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2" id="mode-pass-title">Pass & Play (2 Player)</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4" id="mode-pass-desc">
+                            Battle a friend locally on the same device turn-by-turn. Who is the true Code Master?
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-semibold text-pink-400">
+                        <span id="mode-pass-cta">Local Duel</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile & Stats Widget -->
+            <div class="w-full max-w-4xl bg-gray-900/70 border border-gray-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-user-ninja"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-white flex items-center gap-2">
+                            <span id="user-display-name">Developer #404</span>
+                            <span class="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded" id="user-rank-badge">Junior Debugger</span>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1 flex items-center gap-4">
+                            <span><i class="fa-solid fa-fire text-amber-400 mr-1"></i> <span id="stat-matches">0</span> Matches</span>
+                            <span><i class="fa-solid fa-bullseye text-green-400 mr-1"></i> <span id="stat-winrate">0%</span> Win Rate</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="showLeaderboard()" class="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-200 transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-chart-simple text-cyan-400"></i> <span id="lbl-leaderboard-btn">Stats & History</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CATEGORY / LOBBY SETUP VIEW ================= -->
+        <div id="view-setup" class="view-panel hidden flex flex-col items-center max-w-2xl mx-auto w-full">
+            <button onclick="switchView('view-menu')" class="self-start text-xs text-gray-400 hover:text-white mb-4 flex items-center gap-1">
+                <i class="fa-solid fa-chevron-left"></i> <span id="btn-back">Back to Menu</span>
+            </button>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full">
+                <h3 class="text-2xl font-bold text-white mb-2" id="setup-title">Configure Battle</h3>
+                <p class="text-xs text-gray-400 mb-6" id="setup-desc">Select tech category and difficulty level.</p>
+
+                <!-- Topic Selector -->
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-3" id="lbl-select-category">Category</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="category-selector">
+                        <button data-cat="all" class="cat-btn active p-3 rounded-xl border border-indigo-500 bg-indigo-950/50 text-indigo-300 text-xs font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-cubes"></i> Mixed All
+                        </button>
+                        <button data-cat="js" class="cat-btn p-3 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 text-xs font-semibold flex items-center gap-2">
+                            <i class="fa-brands fa-js text-amber-400"></i> JavaScript
+                        </button>
+                        <button data-cat="python" class="cat-btn p-3 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 text-xs font-semibold flex items-center gap-2">
+                            <i class="fa-brands fa-python text-blue-400"></i> Python
+                        </button>
+                        <button data-cat="web" class="cat-btn p-3 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 text-xs font-semibold flex items-center gap-2">
+                            <i class="fa-brands fa-html5 text-orange-400"></i> HTML/CSS
+                        </button>
+                        <button data-cat="bugs" class="cat-btn p-3 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 text-xs font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-bug text-red-400"></i> Bug Spotting
+                        </button>
+                        <button data-cat="algo" class="cat-btn p-3 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 text-xs font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-sitemap text-emerald-400"></i> Algorithms
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bot Difficulty Selector (for PvP) -->
+                <div class="mb-6" id="bot-diff-container">
+                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-3" id="lbl-select-bot">Bot AI Difficulty</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button data-diff="easy" class="diff-btn p-2.5 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 text-xs font-semibold">Junior Bot</button>
+                        <button data-diff="medium" class="diff-btn active p-2.5 rounded-xl border border-indigo-500 bg-indigo-950/50 text-indigo-300 text-xs font-semibold">Senior Bot</button>
+                        <button data-diff="hard" class="diff-btn p-2.5 rounded-xl border border-gray-800 bg-gray-950 text-gray-400 text-xs font-semibold">AI Overlord</button>
+                    </div>
+                </div>
+
+                <!-- Launch Match Button -->
+                <button onclick="startMatch()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold text-sm tracking-wider hover:opacity-95 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-gamepad"></i> <span id="btn-launch">LAUNCH BATTLE</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= ARENA / BATTLE VIEW ================= -->
+        <div id="view-arena" class="view-panel hidden flex flex-col gap-4 max-w-4xl mx-auto w-full">
+            
+            <!-- PvP Scoreboard / Fighter Status Bar -->
+            <div id="arena-pvp-header" class="grid grid-cols-2 gap-4 bg-gray-900 border border-gray-800 rounded-2xl p-4 relative overflow-hidden">
+                <!-- Player 1 (You) -->
+                <div id="p1-card" class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-cyan-500/20">
+                            <i class="fa-solid fa-user-ninja"></i>
+                        </div>
+                        <span id="p1-combo" class="hidden absolute -top-2 -right-2 bg-pink-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full animate-bounce">2x!</span>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="font-bold text-white" id="p1-name">You</span>
+                            <span class="font-mono text-cyan-400 font-bold" id="p1-score">0 pts</span>
+                        </div>
+                        <!-- Health Bar -->
+                        <div class="w-full h-2.5 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
+                            <div id="p1-hp" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-full transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player 2 (Bot / Opponent) -->
+                <div id="p2-card" class="flex items-center gap-3 flex-row-reverse text-right">
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-purple-500/20">
+                            <i id="p2-avatar-icon" class="fa-solid fa-robot"></i>
+                        </div>
+                        <span id="p2-status-tag" class="absolute -bottom-1 -left-1 bg-gray-800 text-gray-300 text-[9px] px-1 rounded border border-gray-700">BOT</span>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-center text-xs mb-1 flex-row-reverse">
+                            <span class="font-bold text-white" id="p2-name">ByteBot</span>
+                            <span class="font-mono text-pink-400 font-bold" id="p2-score">0 pts</span>
+                        </div>
+                        <!-- Health Bar -->
+                        <div class="w-full h-2.5 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
+                            <div id="p2-hp" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-full transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VS Badge & Round Timer in Center -->
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+                    <div id="timer-display" class="w-10 h-10 rounded-full bg-gray-950 border-2 border-indigo-500 flex items-center justify-center font-mono font-bold text-indigo-300 text-sm shadow-md">
+                        15
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6 shadow-xl relative">
+                <!-- Question Metadata (Category, Difficulty, Turn) -->
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-4 pb-3 border-b border-gray-800">
+                    <div class="flex items-center gap-2">
+                        <span id="q-cat-tag" class="px-2 py-0.5 rounded bg-indigo-950 border border-indigo-800 text-indigo-300 font-medium">JavaScript</span>
+                        <span id="q-number" class="text-gray-500">Question 1/5</span>
+                    </div>
+                    
+                    <!-- Power-ups Bar (for Player turn) -->
+                    <div id="powerups-bar" class="flex items-center gap-2">
+                        <button onclick="usePowerup('fifty')" id="powerup-5050" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-amber-300 rounded border border-gray-700 text-[11px] font-semibold transition-colors flex items-center gap-1" title="Remove 2 wrong choices">
+                            <i class="fa-solid fa-bolt"></i> 50/50
+                        </button>
+                        <button onclick="usePowerup('freeze')" id="powerup-freeze" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-cyan-300 rounded border border-gray-700 text-[11px] font-semibold transition-colors flex items-center gap-1" title="+10 Seconds">
+                            <i class="fa-solid fa-snowflake"></i> Freeze
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Turn Indicator for Pass & Play -->
+                <div id="turn-banner" class="hidden mb-4 p-2 bg-pink-950/60 border border-pink-800/80 rounded-lg text-center text-xs font-bold text-pink-300">
+                    <i class="fa-solid fa-gamepad"></i> <span id="turn-text">Player 1's Turn</span>
+                </div>
+
+                <!-- Question Text -->
+                <h3 id="q-text" class="text-base md:text-lg font-bold text-white mb-4 leading-snug">
+                    Loading question...
+                </h3>
+
+                <!-- Code Snippet Container (if available) -->
+                <div id="q-code-container" class="mb-5 rounded-xl bg-slate-950 border border-gray-800 p-4 overflow-x-auto relative hidden">
+                    <div class="absolute top-2 right-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">CODE</div>
+                    <pre><code id="q-code" class="text-xs md:text-sm text-cyan-300"></code></pre>
+                </div>
+
+                <!-- Answer Options Grid -->
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                    <!-- Options injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= POST-MATCH BREAKDOWN VIEW ================= -->
+        <div id="view-result" class="view-panel hidden flex flex-col items-center max-w-2xl mx-auto w-full">
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 md:p-8 w-full text-center relative overflow-hidden">
+                <!-- Result Icon & Title -->
+                <div id="result-badge-icon" class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <h2 id="result-title" class="text-3xl font-black text-white mb-1">VICTORY!</h2>
+                <p id="result-subtitle" class="text-xs text-gray-400 mb-6">You out-coded ByteBot in battle!</p>
+
+                <!-- Final Scores Summary -->
+                <div class="grid grid-cols-2 gap-4 bg-gray-950 border border-gray-800 rounded-xl p-4 mb-6">
+                    <div class="text-center border-r border-gray-800">
+                        <div class="text-xs text-gray-400 mb-1" id="lbl-res-p1">You</div>
+                        <div class="text-2xl font-black text-cyan-400" id="res-score-p1">0</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xs text-gray-400 mb-1" id="lbl-res-p2">Opponent</div>
+                        <div class="text-2xl font-black text-pink-400" id="res-score-p2">0</div>
+                    </div>
+                </div>
+
+                <!-- XP Earned & Level Up -->
+                <div class="bg-indigo-950/40 border border-indigo-900/60 rounded-xl p-3 mb-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-400 text-base"></i>
+                        <span class="text-gray-300">Match XP Earned:</span>
+                    </div>
+                    <span id="res-xp-gained" class="font-bold text-amber-400 font-mono text-sm">+150 XP</span>
+                </div>
+
+                <!-- Question Breakdown & Explanations Accordion -->
+                <div class="text-left mb-6">
+                    <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3" id="lbl-breakdown">Question Breakdown</h4>
+                    <div id="breakdown-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <!-- Breakdown items dynamically inserted -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <button onclick="switchView('view-menu')" class="flex-1 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-colors" id="btn-res-menu">
+                        Main Menu
+                    </button>
+                    <button onclick="rematch()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors shadow-lg shadow-indigo-500/20" id="btn-res-again">
+                        Play Again
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= STATS & LEADERBOARD MODAL/VIEW ================= -->
+        <div id="view-stats" class="view-panel hidden max-w-2xl mx-auto w-full">
+            <button onclick="switchView('view-menu')" class="self-start text-xs text-gray-400 hover:text-white mb-4 flex items-center gap-1">
+                <i class="fa-solid fa-chevron-left"></i> <span>Back to Menu</span>
+            </button>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+                <h3 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-indigo-400"></i> <span id="stats-title">Player Stats & History</span>
+                </h3>
+
+                <!-- Ranks and Badges -->
+                <div class="grid grid-cols-3 gap-3 mb-6 text-center">
+                    <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                        <div class="text-xs text-gray-400 mb-1">Rank Title</div>
+                        <div id="stat-rank-title" class="text-sm font-bold text-indigo-300">Junior Debugger</div>
+                    </div>
+                    <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                        <div class="text-xs text-gray-400 mb-1">Total XP</div>
+                        <div id="stat-total-xp" class="text-sm font-bold text-cyan-300 font-mono">0</div>
+                    </div>
+                    <div class="bg-gray-950 border border-gray-800 rounded-xl p-3">
+                        <div class="text-xs text-gray-400 mb-1">Win Streak</div>
+                        <div id="stat-streak" class="text-sm font-bold text-pink-400">0</div>
+                    </div>
+                </div>
+
+                <!-- Match History Table -->
+                <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">Recent Matches</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-gray-950 text-gray-400 uppercase font-mono text-[10px]">
+                            <tr>
+                                <th class="p-2">Mode</th>
+                                <th class="p-2">Result</th>
+                                <th class="p-2">Score</th>
+                                <th class="p-2">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-rows" class="divide-y divide-gray-800 text-gray-300">
+                            <!-- Rows injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-800 py-3 text-center text-xs text-gray-600 bg-slate-950">
+        CodeQuiz Arena &copy; 2026 — Single-File Cyber Trivia
+    </footer>
+
+    <!-- AUDIO ENGINE (Web Audio API Synthesizer) & GAME SCRIPT -->
+    <script>
+        /* ==========================================================================
+           1. LOCALIZATION (UZBEK / ENGLISH)
+           ========================================================================== */
+        let currentLang = 'EN';
+        
+        const i18n = {
+            EN: {
+                subtitle: "1v1 PvP Coding Battles & Tech Trivia",
+                menuTitle1: "Test Your Code.",
+                menuTitle2: "Dominate The Arena.",
+                menuDesc: "Battle against AI bots, challenge friends locally, or test your speed in Bug Spotting, JS, Python, HTML/CSS and Algorithms.",
+                pvpTitle: "1v1 PvP Bot Battle",
+                pvpDesc: "Real-time fast-paced fight against smart AI. 15s timer per question with health bars & power-ups.",
+                pvpCta: "Start Battle",
+                practiceTitle: "Solo Practice",
+                practiceDesc: "No timer pressure. Deep dive into topics with instant feedback and detailed explanations.",
+                practiceCta: "Train Now",
+                passTitle: "Pass & Play (2 Player)",
+                passDesc: "Battle a friend locally on the same device turn-by-turn. Who is the true Code Master?",
+                passCta: "Local Duel",
+                statsBtn: "Stats & History",
+                backMenu: "Back to Menu",
+                setupTitle: "Configure Battle",
+                setupDesc: "Select tech category and difficulty level.",
+                catLabel: "Category",
+                botLabel: "Bot AI Difficulty",
+                launchBtn: "LAUNCH BATTLE",
+                you: "You",
+                bot: "ByteBot",
+                p1Label: "Player 1",
+                p2Label: "Player 2",
+                victory: "VICTORY!",
+                defeat: "DEFEAT!",
+                tie: "DRAW MATCH!",
+                resSubWin: "You out-coded ByteBot in battle!",
+                resSubLose: "ByteBot took the lead. Practice more!",
+                resSubTie: "An equal match of algorithms!",
+                breakdown: "Question Breakdown",
+                mainMenu: "Main Menu",
+                playAgain: "Play Again"
+            },
+            UZ: {
+                subtitle: "1v1 PvP Dasturlash O'yini va Texnik Savol-Javob",
+                menuTitle1: "Bilimingni Sinab Ko'r.",
+                menuTitle2: "Arenada G'olib Bo'l.",
+                menuDesc: "AI botlar bilan bellashing, do'stlaringiz bilan 1v1 o'ynang yoki JS, Python va algoritmlardagi xatolarni toping.",
+                pvpTitle: "1v1 PvP Bot Beli",
+                pvpDesc: "AI boti bilan 15 soniyalik tezkor jang. Jon chiziqlari va super kuchlar bilan.",
+                pvpCta: "Jangni Boshlash",
+                practiceTitle: "Yakkaxon Mashq",
+                practiceDesc: "Vaqt cheklovisiz. Savollarga javob bering va batafsil tushuntirishlarni o'rganing.",
+                practiceCta: "Mashq Qilish",
+                passTitle: "Do'st Bilan (2 O'yinchi)",
+                passDesc: "Bitta qurilmada do'stingiz bilan navbatma-navbat 1v1 bellashing.",
+                passCta: "Lokal Duel",
+                statsBtn: "Statistika",
+                backMenu: "Orqaga",
+                setupTitle: "Jang Sozlamalari",
+                setupDesc: "Kategoriya va bot qiyinligini tanlang.",
+                catLabel: "Kategoriya",
+                botLabel: "Bot Qiyinligi",
+                launchBtn: "JANGNI BOSHLASH",
+                you: "Siz",
+                bot: "ByteBot",
+                p1Label: "1-O'yinchi",
+                p2Label: "2-O'yinchi",
+                victory: "G'ALABA!",
+                defeat: "MAG'LUBIYAT!",
+                tie: "DURANG!",
+                resSubWin: "Ajoyib! Botingizni kodingiz bilan mag'lub etdingiz!",
+                resSubLose: "ByteBot ustun keldi. Ko'proq mashq qiling!",
+                resSubTie: "Teng kuchli algoritmchilar!",
+                breakdown: "Savollar Tahlili",
+                mainMenu: "Bosh Menyu",
+                playAgain: "Qayta O'ynash"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'EN' ? 'UZ' : 'EN';
+            document.getElementById('lang-btn-text').innerText = currentLang;
+            applyLanguageStrings();
+        }
+
+        function applyLanguageStrings() {
+            const t = i18n[currentLang];
+            document.getElementById('txt-subtitle').innerText = t.subtitle;
+            document.getElementById('menu-title-1').innerText = t.menuTitle1;
+            document.getElementById('menu-title-2').innerText = t.menuTitle2;
+            document.getElementById('menu-desc').innerText = t.menuDesc;
+            document.getElementById('mode-pvp-title').innerText = t.pvpTitle;
+            document.getElementById('mode-pvp-desc').innerText = t.pvpDesc;
+            document.getElementById('mode-pvp-cta').innerText = t.pvpCta;
+            document.getElementById('mode-practice-title').innerText = t.practiceTitle;
+            document.getElementById('mode-practice-desc').innerText = t.practiceDesc;
+            document.getElementById('mode-practice-cta').innerText = t.practiceCta;
+            document.getElementById('mode-pass-title').innerText = t.passTitle;
+            document.getElementById('mode-pass-desc').innerText = t.passDesc;
+            document.getElementById('mode-pass-cta').innerText = t.passCta;
+            document.getElementById('lbl-leaderboard-btn').innerText = t.statsBtn;
+            document.getElementById('btn-back').innerText = t.backMenu;
+            document.getElementById('setup-title').innerText = t.setupTitle;
+            document.getElementById('setup-desc').innerText = t.setupDesc;
+            document.getElementById('lbl-select-category').innerText = t.catLabel;
+            document.getElementById('lbl-select-bot').innerText = t.botLabel;
+            document.getElementById('btn-launch').innerText = t.launchBtn;
+            document.getElementById('lbl-breakdown').innerText = t.breakdown;
+            document.getElementById('btn-res-menu').innerText = t.mainMenu;
+            document.getElementById('btn-res-again').innerText = t.playAgain;
+        }
+
+        /* ==========================================================================
+           2. SOUND FX ENGINE (Web Audio API Synthesizer)
+           ========================================================================== */
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high text-cyan-400";
+                playSound('click');
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-gray-500";
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, now); // A4
+                osc.frequency.setValueAtTime(880, now + 0.1); // A5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'win') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.15); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.3); // G5
+                osc.frequency.setValueAtTime(1046.50, now + 0.45); // C6
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
+
+        /* ==========================================================================
+           3. QUESTION BANK (HTML/CSS, JS, PYTHON, BUGS, ALGORITHMS)
+           ========================================================================== */
+        const questionBank = [
+            // JavaScript
+            {
+                cat: 'js',
+                q: "What will be the output of `console.log(typeof NaN)` in JavaScript?",
+                code: "console.log(typeof NaN);",
+                options: ["'number'", "'NaN'", "'undefined'", "'object'"],
+                correct: 0,
+                explain: "In JavaScript, NaN (Not-a-Number) is technically a numeric type."
+            },
+            {
+                cat: 'js',
+                q: "Which keyword creates a block-scoped variable that cannot be reassigned?",
+                code: "const x = 10;\nx = 20; // Error!",
+                options: ["let", "var", "const", "static"],
+                correct: 2,
+                explain: "`const` declares block-scoped variables that cannot be reassigned."
+            },
+            {
+                cat: 'js',
+                q: "What is the result of `[] + []` in JavaScript?",
+                code: "console.log([] + []);",
+                options: ["'[]'", "0", "'' (empty string)", "undefined"],
+                correct: 2,
+                explain: "Two empty arrays coerced to primitives become empty strings, resulting in ''."
+            },
+
+            // Python
+            {
+                cat: 'python',
+                q: "What will `print(bool([]))` evaluate to in Python?",
+                code: "my_list = []\nprint(bool(my_list))",
+                options: ["True", "False", "None", "TypeError"],
+                correct: 1,
+                explain: "Empty collections (lists, tuples, dicts) evaluate to False in Python."
+            },
+            {
+                cat: 'python',
+                q: "Which function is used to get the number of items in a Python list?",
+                code: "items = [1, 2, 3]\n# Get count",
+                options: ["items.length()", "len(items)", "items.size()", "count(items)"],
+                correct: 1,
+                explain: "`len()` built-in function returns the length of an object."
+            },
+
+            // HTML/CSS
+            {
+                cat: 'web',
+                q: "Which CSS property centers items vertically and horizontally in a Flex container?",
+                code: ".container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}",
+                options: ["text-align: center", "align-content: center", "justify-content & align-items", "margin: auto auto"],
+                correct: 2,
+                explain: "`justify-content: center` handles main axis and `align-items: center` cross axis."
+            },
+            {
+                cat: 'web',
+                q: "What does HTML 'semantic tag' mean?",
+                code: "<article>\n  <h2>Header</h2>\n</article>",
+                options: [
+                    "A tag that alters text color automatically",
+                    "A tag that conveys meaning to both browser & developer",
+                    "A tag reserved for JavaScript execution",
+                    "A deprecated HTML4 element"
+                ],
+                correct: 1,
+                explain: "Semantic tags clearly describe their meaning (e.g., <header>, <article>)."
+            },
+
+            // Bug Spotting
+            {
+                cat: 'bugs',
+                q: "Find the logic bug in this function meant to check if number is even:",
+                code: "function isEven(num) {\n  return num % 2 = 0;\n}",
+                options: [
+                    "Assignment '=' used instead of equality '==='",
+                    "num % 2 should be num / 2",
+                    "Missing 'else' block",
+                    "Function keyword misspelled"
+                ],
+                correct: 0,
+                explain: "`=` is an assignment operator. Strict equality `===` should be used."
+            },
+            {
+                cat: 'bugs',
+                q: "Why does this infinite loop occur in Python?",
+                code: "i = 1\nwhile i < 5:\n    print(i)\n    # missing line",
+                options: [
+                    "Python requires 'do-while' syntax",
+                    "The counter variable 'i' is never incremented",
+                    "print statement is missing parenthesis",
+                    "Condition 'i < 5' is invalid"
+                ],
+                correct: 1,
+                explain: "Without `i += 1`, `i` stays 1 forever, causing an infinite loop."
+            },
+
+            // Algorithms
+            {
+                cat: 'algo',
+                q: "What is the time complexity of a Binary Search on a sorted array?",
+                code: "// Binary Search algorithm\n// Splitting search space in half each step",
+                options: ["O(N)", "O(N log N)", "O(log N)", "O(1)"],
+                correct: 2,
+                explain: "Binary search repeatedly divides the search range in half, giving O(log N) time."
+            }
+        ];
+
+        /* ==========================================================================
+           4. GAME STATE & PLAYER PROGRESSION
+           ========================================================================== */
+        let playerStats = {
+            xp: 0,
+            matches: 0,
+            wins: 0,
+            streak: 0,
+            history: []
+        };
+
+        let selectedMode = 'pvp'; // 'pvp', 'practice', 'pass-play'
+        let selectedCategory = 'all';
+        let selectedBotDiff = 'medium';
+
+        let currentQuestions = [];
+        let currentQIndex = 0;
+        let timerInterval = null;
+        let timeLeft = 15;
+
+        // Player states for active match
+        let p1State = { score: 0, hp: 100, combo: 0 };
+        let p2State = { score: 0, hp: 100, combo: 0 };
+        let activeTurn = 1; // 1 or 2 (for Pass & Play)
+
+        let powerup50Used = false;
+        let matchBreakdown = [];
+
+        /* ==========================================================================
+           5. STORAGE & INITIALIZATION
+           ========================================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPlayerStats();
+            setupCategoryListeners();
+            setupDiffListeners();
+            applyLanguageStrings();
+        });
+
+        function loadPlayerStats() {
+            const saved = localStorage.getItem('codequiz_player_stats');
+            if (saved) {
+                try {
+                    playerStats = JSON.parse(saved);
+                } catch(e) {}
+            }
+            updateProfileUI();
+        }
+
+        function savePlayerStats() {
+            localStorage.setItem('codequiz_player_stats', JSON.stringify(playerStats));
+            updateProfileUI();
+        }
+
+        function updateProfileUI() {
+            const rank = getRankTitle(playerStats.xp);
+            document.getElementById('header-rank').innerText = rank;
+            document.getElementById('user-rank-badge').innerText = rank;
+            document.getElementById('header-xp').innerText = `${playerStats.xp} XP`;
+            document.getElementById('stat-matches').innerText = playerStats.matches;
+            
+            const winrate = playerStats.matches > 0 
+                ? Math.round((playerStats.wins / playerStats.matches) * 100) 
+                : 0;
+            document.getElementById('stat-winrate').innerText = `${winrate}%`;
+
+            document.getElementById('stat-rank-title').innerText = rank;
+            document.getElementById('stat-total-xp').innerText = playerStats.xp;
+            document.getElementById('stat-streak').innerText = playerStats.streak;
+        }
+
+        function getRankTitle(xp) {
+            if (xp < 200) return 'Junior Debugger';
+            if (xp < 500) return 'Code Ninja';
+            if (xp < 1000) return 'Algorithm Master';
+            return 'Cyber Architect';
+        }
+
+        /* ==========================================================================
+           6. NAVIGATION & SETUP
+           ========================================================================== */
+        function switchView(viewId) {
+            playSound('click');
+            document.querySelectorAll('.view-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function selectGameMode(mode) {
+            selectedMode = mode;
+            
+            // Adjust setup dialog according to mode
+            const botContainer = document.getElementById('bot-diff-container');
+            if (mode === 'pvp') {
+                botContainer.classList.remove('hidden');
+            } else {
+                botContainer.classList.add('hidden');
+            }
+
+            switchView('view-setup');
+        }
+
+        function setupCategoryListeners() {
+            const btns = document.querySelectorAll('.cat-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSound('click');
+                    btns.forEach(b => {
+                        b.classList.remove('active', 'border-indigo-500', 'bg-indigo-950/50', 'text-indigo-300');
+                        b.classList.add('border-gray-800', 'bg-gray-950', 'text-gray-400');
+                    });
+                    btn.classList.add('active', 'border-indigo-500', 'bg-indigo-950/50', 'text-indigo-300');
+                    btn.classList.remove('border-gray-800', 'bg-gray-950', 'text-gray-400');
+                    selectedCategory = btn.getAttribute('data-cat');
+                });
+            });
+        }
+
+        function setupDiffListeners() {
+            const btns = document.querySelectorAll('.diff-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSound('click');
+                    btns.forEach(b => {
+                        b.classList.remove('active', 'border-indigo-500', 'bg-indigo-950/50', 'text-indigo-300');
+                        b.classList.add('border-gray-800', 'bg-gray-950', 'text-gray-400');
+                    });
+                    btn.classList.add('active', 'border-indigo-500', 'bg-indigo-950/50', 'text-indigo-300');
+                    btn.classList.remove('border-gray-800', 'bg-gray-950', 'text-gray-400');
+                    selectedBotDiff = btn.getAttribute('data-diff');
+                });
+            });
+        }
+
+        /* ==========================================================================
+           7. MATCH CORE LOGIC
+           ========================================================================== */
+        function startMatch() {
+            // Filter questions
+            let pool = questionBank;
+            if (selectedCategory !== 'all') {
+                pool = questionBank.filter(q => q.cat === selectedCategory);
+            }
+            if (pool.length === 0) pool = questionBank;
+
+            // Shuffle questions
+            currentQuestions = [...pool].sort(() => 0.5 - Math.random()).slice(0, 5);
+            currentQIndex = 0;
+            
+            // Reset player states
+            p1State = { score: 0, hp: 100, combo: 0 };
+            p2State = { score: 0, hp: 100, combo: 0 };
+            activeTurn = 1;
+            matchBreakdown = [];
+            powerup50Used = false;
+
+            // Configure Arena UI based on mode
+            const p2AvatarIcon = document.getElementById('p2-avatar-icon');
+            const p2Tag = document.getElementById('p2-status-tag');
+            const p1Name = document.getElementById('p1-name');
+            const p2Name = document.getElementById('p2-name');
+            const pvpHeader = document.getElementById('arena-pvp-header');
+            const powerupsBar = document.getElementById('powerups-bar');
+            const turnBanner = document.getElementById('turn-banner');
+
+            const t = i18n[currentLang];
+
+            if (selectedMode === 'pvp') {
+                pvpHeader.classList.remove('hidden');
+                powerupsBar.classList.remove('hidden');
+                turnBanner.classList.add('hidden');
+                p1Name.innerText = t.you;
+                p2Name.innerText = t.bot;
+                p2AvatarIcon.className = "fa-solid fa-robot";
+                p2Tag.innerText = "BOT";
+            } else if (selectedMode === 'pass-play') {
+                pvpHeader.classList.remove('hidden');
+                powerupsBar.classList.add('hidden');
+                turnBanner.classList.remove('hidden');
+                p1Name.innerText = t.p1Label;
+                p2Name.innerText = t.p2Label;
+                p2AvatarIcon.className = "fa-solid fa-user-ninja";
+                p2Tag.innerText = "P2";
+            } else { // Practice
+                pvpHeader.classList.add('hidden');
+                powerupsBar.classList.remove('hidden');
+                turnBanner.classList.add('hidden');
+            }
+
+            updateArenaScoreboard();
+            switchView('view-arena');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            clearInterval(timerInterval);
+
+            if (currentQIndex >= currentQuestions.length) {
+                endMatch();
+                return;
+            }
+
+            const q = currentQuestions[currentQIndex];
+
+            // Render Q Metadata
+            document.getElementById('q-cat-tag').innerText = q.cat.toUpperCase();
+            document.getElementById('q-number').innerText = `Question ${currentQIndex + 1}/${currentQuestions.length}`;
+            document.getElementById('q-text').innerText = q.q;
+
+            // Render Code snippet
+            const codeContainer = document.getElementById('q-code-container');
+            if (q.code) {
+                codeContainer.classList.remove('hidden');
+                document.getElementById('q-code').innerText = q.code;
+            } else {
+                codeContainer.classList.add('hidden');
+            }
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "opt-btn w-full p-3.5 rounded-xl bg-gray-950 border border-gray-800 hover:border-indigo-500 text-left text-xs md:text-sm font-medium text-gray-200 transition-all duration-200 flex items-center justify-between group";
+                btn.setAttribute('data-idx', idx);
+                btn.onclick = () => handleAnswerSelect(idx);
+                
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <span class="w-6 h-6 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-center text-xs text-gray-500 group-hover:border-indigo-500 group-hover:text-indigo-400">${String.fromCharCode(65 + idx)}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Update Turn Banner for Pass-play
+            if (selectedMode === 'pass-play') {
+                const turnText = document.getElementById('turn-text');
+                const t = i18n[currentLang];
+                turnText.innerText = activeTurn === 1 ? `${t.p1Label}'s Turn` : `${t.p2Label}'s Turn`;
+            }
+
+            // Start Timer (if not Practice)
+            if (selectedMode !== 'practice') {
+                timeLeft = 15;
+                document.getElementById('timer-display').innerText = timeLeft;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timer-display').innerText = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        handleAnswerSelect(-1); // Timeout as wrong
+                    }
+                }, 1000);
+            } else {
+                document.getElementById('timer-display').innerText = "∞";
+            }
+        }
+
+        function handleAnswerSelect(selectedIdx) {
+            clearInterval(timerInterval);
+            const q = currentQuestions[currentQIndex];
+            const isCorrect = (selectedIdx === q.correct);
+
+            const optBtns = document.querySelectorAll('.opt-btn');
+            optBtns.forEach(btn => btn.disabled = true);
+
+            // Highlight Correct / Wrong
+            optBtns.forEach((btn, idx) => {
+                if (idx === q.correct) {
+                    btn.classList.add('bg-green-950/80', 'border-green-500', 'text-green-300');
+                } else if (idx === selectedIdx && !isCorrect) {
+                    btn.classList.add('bg-red-950/80', 'border-red-500', 'text-red-300');
+                }
+            });
+
+            // Sound
+            if (isCorrect) playSound('correct');
+            else playSound('wrong');
+
+            // Logic for scoring
+            if (selectedMode === 'pvp') {
+                // Player turn
+                if (isCorrect) {
+                    p1State.combo++;
+                    const bonus = p1State.combo > 1 ? 50 : 0;
+                    p1State.score += 100 + (timeLeft * 5) + bonus;
+                    p2State.hp = Math.max(0, p2State.hp - 20);
+                } else {
+                    p1State.combo = 0;
+                    p1State.hp = Math.max(0, p1State.hp - 20);
+                    triggerDamageEffect('p1-card');
+                }
+
+                // Simulate Bot Answer simultaneously
+                const botIsCorrect = simulateBotAnswer();
+                if (botIsCorrect) {
+                    p2State.combo++;
+                    p2State.score += 90 + Math.floor(Math.random() * 30);
+                    p1State.hp = Math.max(0, p1State.hp - 15);
+                    triggerDamageEffect('p1-card');
+                } else {
+                    p2State.combo = 0;
+                    p2State.hp = Math.max(0, p2State.hp - 15);
+                    triggerDamageEffect('p2-card');
+                }
+
+            } else if (selectedMode === 'pass-play') {
+                if (activeTurn === 1) {
+                    if (isCorrect) {
+                        p1State.score += 100 + (timeLeft * 5);
+                        p2State.hp = Math.max(0, p2State.hp - 20);
+                    } else {
+                        p1State.hp = Math.max(0, p1State.hp - 20);
+                        triggerDamageEffect('p1-card');
+                    }
+                    activeTurn = 2; // Switch turn for next Q
+                } else {
+                    if (isCorrect) {
+                        p2State.score += 100 + (timeLeft * 5);
+                        p1State.hp = Math.max(0, p1State.hp - 20);
+                    } else {
+                        p2State.hp = Math.max(0, p2State.hp - 20);
+                        triggerDamageEffect('p2-card');
+                    }
+                    activeTurn = 1;
+                }
+            } else { // Practice
+                if (isCorrect) p1State.score += 100;
+            }
+
+            // Save for breakdown
+            matchBreakdown.push({
+                question: q.q,
+                selected: selectedIdx >= 0 ? q.options[selectedIdx] : "Time Out",
+                correct: q.options[q.correct],
+                isCorrect: isCorrect,
+                explain: q.explain
+            });
+
+            updateArenaScoreboard();
+
+            // Next Question Delay
+            setTimeout(() => {
+                currentQIndex++;
+                loadQuestion();
+            }, 1800);
+        }
+
+        function simulateBotAnswer() {
+            let winChance = 0.5; // Medium
+            if (selectedBotDiff === 'easy') winChance = 0.3;
+            if (selectedBotDiff === 'hard') winChance = 0.8;
+            return Math.random() < winChance;
+        }
+
+        function triggerDamageEffect(cardId) {
+            const el = document.getElementById(cardId);
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 400);
+        }
+
+        function updateArenaScoreboard() {
+            document.getElementById('p1-score').innerText = `${p1State.score} pts`;
+            document.getElementById('p2-score').innerText = `${p2State.score} pts`;
+            document.getElementById('p1-hp').style.width = `${p1State.hp}%`;
+            document.getElementById('p2-hp').style.width = `${p2State.hp}%`;
+
+            const p1ComboEl = document.getElementById('p1-combo');
+            if (p1State.combo > 1) {
+                p1ComboEl.innerText = `${p1State.combo}x Combo!`;
+                p1ComboEl.classList.remove('hidden');
+            } else {
+                p1ComboEl.classList.add('hidden');
+            }
+        }
+
+        /* ==========================================================================
+           8. POWER-UPS
+           ========================================================================== */
+        function usePowerup(type) {
+            if (type === 'fifty') {
+                if (powerup50Used) return;
+                powerup50Used = true;
+                playSound('click');
+
+                const q = currentQuestions[currentQIndex];
+                const optBtns = document.querySelectorAll('.opt-btn');
+                let removed = 0;
+
+                optBtns.forEach((btn, idx) => {
+                    if (idx !== q.correct && removed < 2) {
+                        btn.style.opacity = '0.2';
+                        btn.disabled = true;
+                        removed++;
+                    }
+                });
+
+                document.getElementById('powerup-5050').classList.add('opacity-40', 'cursor-not-allowed');
+            } else if (type === 'freeze') {
+                playSound('click');
+                timeLeft += 10;
+                document.getElementById('timer-display').innerText = timeLeft;
+                document.getElementById('powerup-freeze').classList.add('opacity-40', 'cursor-not-allowed');
+                document.getElementById('powerup-freeze').onclick = null;
+            }
+        }
+
+        /* ==========================================================================
+           9. MATCH END & BREAKDOWN
+           ========================================================================== */
+        function endMatch() {
+            clearInterval(timerInterval);
+            playSound('win');
+
+            const t = i18n[currentLang];
+            let isWin = p1State.score > p2State.score;
+            let isTie = p1State.score === p2State.score;
+
+            // Calculate XP Gained
+            let xpGained = Math.floor(p1State.score / 2);
+            if (isWin) xpGained += 50;
+
+            // Update Global Stats
+            playerStats.matches++;
+            if (isWin) {
+                playerStats.wins++;
+                playerStats.streak++;
+            } else {
+                playerStats.streak = 0;
+            }
+            playerStats.xp += xpGained;
+
+            playerStats.history.unshift({
+                mode: selectedMode,
+                win: isWin,
+                score: p1State.score,
+                date: new Date().toLocaleDateString()
+            });
+            if (playerStats.history.length > 10) playerStats.history.pop();
+
+            savePlayerStats();
+
+            // Populate Results UI
+            const resBadgeIcon = document.getElementById('result-badge-icon');
+            const resTitle = document.getElementById('result-title');
+            const resSub = document.getElementById('result-subtitle');
+
+            if (isWin) {
+                resBadgeIcon.className = "w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-xl bg-cyan-950 text-cyan-400 border-2 border-cyan-500 shadow-cyan-500/30";
+                resTitle.innerText = t.victory;
+                resSub.innerText = t.resSubWin;
+            } else if (isTie) {
+                resBadgeIcon.className = "w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-xl bg-purple-950 text-purple-400 border-2 border-purple-500 shadow-purple-500/30";
+                resTitle.innerText = t.tie;
+                resSub.innerText = t.resSubTie;
+            } else {
+                resBadgeIcon.className = "w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl shadow-xl bg-red-950 text-red-400 border-2 border-red-500 shadow-red-500/30";
+                resTitle.innerText = t.defeat;
+                resSub.innerText = t.resSubLose;
+            }
+
+            document.getElementById('res-score-p1').innerText = p1State.score;
+            document.getElementById('res-score-p2').innerText = p2State.score;
+            document.getElementById('res-xp-gained').innerText = `+${xpGained} XP`;
+
+            // Render Breakdown List
+            const breakdownList = document.getElementById('breakdown-list');
+            breakdownList.innerHTML = '';
+
+            matchBreakdown.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-950 border border-gray-800 rounded-lg p-3 text-xs";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-gray-200">Q${idx + 1}: ${item.question}</span>
+                        <span class="${item.isCorrect ? 'text-green-400' : 'text-red-400'} font-bold">
+                            ${item.isCorrect ? '✓ Correct' : '✕ Wrong'}
+                        </span>
+                    </div>
+                    <div class="text-gray-400 mb-1">Your answer: <span class="text-gray-200">${item.selected}</span></div>
+                    ${!item.isCorrect ? `<div class="text-green-400 mb-1">Correct answer: <span>${item.correct}</span></div>` : ''}
+                    <div class="text-indigo-300 text-[11px] bg-indigo-950/40 p-1.5 rounded mt-1">💡 ${item.explain}</div>
+                `;
+                breakdownList.appendChild(div);
+            });
+
+            switchView('view-result');
+        }
+
+        function rematch() {
+            startMatch();
+        }
+
+        /* ==========================================================================
+           10. LEADERBOARD / STATS MODAL
+           ========================================================================== */
+        function showLeaderboard() {
+            const rows = document.getElementById('history-rows');
+            rows.innerHTML = '';
+
+            if (playerStats.history.length === 0) {
+                rows.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No match history yet. Play a match!</td></tr>`;
+            } else {
+                playerStats.history.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-2 uppercase font-bold text-gray-400">${item.mode}</td>
+                        <td class="p-2 font-bold ${item.win ? 'text-green-400' : 'text-red-400'}">${item.win ? 'WIN' : 'LOSS'}</td>
+                        <td class="p-2 font-mono text-cyan-300">${item.score}</td>
+                        <td class="p-2 text-gray-500">${item.date}</td>
+                    `;
+                    rows.appendChild(tr);
+                });
+            }
+
+            switchView('view-stats');
+        }
+    </script>
+</body>
+</html>
+```
+
+### Features included in **CodeQuiz Arena**:
+1. **Game Modes**:
+   - **1v1 PvP Bot Battle**: Simulated match against customizable bot difficulties (Junior, Senior, AI Overlord) with HP bars, combo multipliers, and a 15-second timer per round.
+   - **Solo Practice**: Pressure-free practice mode with instant answers and full explanations.
+   - **Pass & Play**: Turn-based local two-player duel on a single device.
+2. **Categories & Tech Questions**:
+   - Bug Spotting, JavaScript, Python, HTML/CSS, and Data Structures/Algorithms.
+   - Formatted syntax-styled code blocks for questions.
+3. **Power-ups & Sound FX**:
+   - Built-in Web Audio API synthesizer for sound effects (correct answer tone, click, defeat/victory fanfares).
+   - `50/50` and `Freeze Time` power-ups.
+4. **Localization & LocalStorage**:
+   - Bilingual support (**English** and **Uzbek** language toggle).
+   - Persistent XP, rank progression (*Junior Debugger*, *Code Ninja*, *Algorithm Master*, *Cyber Architect*), win streaks, and match history stored in `localStorage`.
